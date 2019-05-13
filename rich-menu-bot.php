@@ -10,9 +10,12 @@ $channelSecret = 'f436a2bbf4723459c3400b1fc30b2a9a';
 
 $httpClient = new \LINE\LINEBot\HTTPClient\CurlHTTPClient($CHANNEL_ACCESS_TOKEN);
 $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => $channelSecret]);
-$signature = $_SERVER['HTTP_' . \LINE\LINEBot\Constant\HTTPHeader::LINE_SIGNATURE];
+// $signature = $_SERVER['HTTP_' . \LINE\LINEBot\Constant\HTTPHeader::LINE_SIGNATURE];
 
-$events = $bot->parseEventRequest(file_get_contents('php://input'), $signature);
+// $events = $bot->parseEventRequest(file_get_contents('php://input'), $signature);
+
+$content = file_get_contents('php://input');
+$events = json_decode($content, true);
 
 foreach ($events as $event) {
 
