@@ -8,11 +8,21 @@ $access_token = 'Cg5ODfaoolXn/2qKtY81USq6NRCtbt/CmjNAAddhYQdeBRw/DMXVrmu8u09fL1Z
 
 
 // Get POST body content
-// $content = file_get_contents('php://input');
+$content = file_get_contents('php://input');
 // Parse JSON
-// $events = json_decode($content, true);
+$events = json_decode($content, true);
 
 $items = array();
+
+$items[] = array(
+	"type"=> "action",
+    "action"=> array(
+      "type"=> "cameraRoll",
+      "label"=> "Camera Roll"
+    )
+);
+
+
 /*$items[] = array(
 	"type" => "action", // ③
     "imageUrl" => "https://example.com/sushi.png",
@@ -21,7 +31,7 @@ $items = array();
       "label" => "Sushi",
       "text" => "Sushi"
     )
-);
+)
 
 $items[] = array(
 	"type"=> "action",
@@ -45,7 +55,7 @@ $items[] = array(
 // Validate parsed JSON data
 $data = array(
 	"type" => "text", // ①
-	"text" => "Select your favorite food category or send me your location!",
+	"text" => "Hello Quick Reply!",
 	"quickReply" => array( // ②
 		"items" => $items,
 	)
@@ -92,7 +102,7 @@ $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $events);
-curl_setopt($ch, CURLOPT_HTTPHEADER, $data);
+curl_setopt($ch, CURLOPT_HTTPHEADER, json_encode($data));
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 $result = curl_exec($ch);
 curl_close($ch);
