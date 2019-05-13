@@ -17,9 +17,22 @@ $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => $channelSecret]);
 $textMessageBuilder = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('hello world');
 // $response = $bot->pushMessage($pushID, $textMessageBuilder);
 
-$response = $bot->pushMessage($pushID2, $textMessageBuilder);
+// $response = $bot->pushMessage($pushID2, $textMessageBuilder);
 
+// echo $response->getHTTPStatus() . ' ' . $response->getRawBody();
+
+
+// $textMessageBuilder = new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('hello');
+$response = $bot->replyMessage($pushID2, $textMessageBuilder);
+if ($response->isSucceeded()) {
+    echo 'Succeeded!';
+    return;
+}
+
+// Failed
 echo $response->getHTTPStatus() . ' ' . $response->getRawBody();
+
+
 
 
 
