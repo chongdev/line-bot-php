@@ -221,3 +221,5 @@ function isRichmenuIdValid($string) {
     return false;
   }
 }
+
+echo 'Succeeded!';
