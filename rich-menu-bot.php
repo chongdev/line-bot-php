@@ -9,101 +9,101 @@ $channelSecret = 'f436a2bbf4723459c3400b1fc30b2a9a';
 
 $httpClient = new \LINE\LINEBot\HTTPClient\CurlHTTPClient($CHANNEL_ACCESS_TOKEN);
 $bot = new \LINE\LINEBot($httpClient, ['channelSecret' => $channelSecret]);
-$signature = $_SERVER['HTTP_' . \LINE\LINEBot\Constant\HTTPHeader::LINE_SIGNATURE];
+// $signature = $_SERVER['HTTP_' . \LINE\LINEBot\Constant\HTTPHeader::LINE_SIGNATURE];
 
-$events = $bot->parseEventRequest(file_get_contents('php://input'), $signature);
+// $events = $bot->parseEventRequest(file_get_contents('php://input'), $signature);
 
-// $content = file_get_contents('php://input');
-// $events = json_decode($content, true);
+$content = file_get_contents('php://input');
+$events = json_decode($content, true);
+if (!is_null($events['events'])) {
+  foreach ($events as $event) {
 
-foreach ($events as $event) {
 
+  	if ($event instanceof \LINE\LINEBot\Event\MessageEvent) {
+      	if($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage) {
+      		
 
-	if ($event instanceof \LINE\LINEBot\Event\MessageEvent) {
-    	if($event instanceof \LINE\LINEBot\Event\MessageEvent\TextMessage) {
-    		
+      		if($event->getText() === 'create') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(createNewRichmenu(getenv($CHANNEL_ACCESS_TOKEN))));
+  		    }
+  		    else if($event->getText() === 'list') {
+  		    	$result = getListOfRichmenu(getenv($CHANNEL_ACCESS_TOKEN));
 
-    		if($event->getText() === 'create') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(createNewRichmenu(getenv($CHANNEL_ACCESS_TOKEN))));
-		    }
-		    else if($event->getText() === 'list') {
-		    	$result = getListOfRichmenu(getenv($CHANNEL_ACCESS_TOKEN));
+  		    	if(isset($result['richmenus']) && count($result['richmenus']) > 0) {
 
-		    	if(isset($result['richmenus']) && count($result['richmenus']) > 0) {
+  		    		$builders = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
+            			$columns = Array();
 
-		    		$builders = new \LINE\LINEBot\MessageBuilder\MultiMessageBuilder();
-          			$columns = Array();
+            			for($i = 0; $i < count($result['richmenus']); $i++) {
+  			            $richmenu = $result['richmenus'][$i];
+  			            $actionArray = array();
+  			        
+  			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
+  			              'upload image', 'upload::' . $richmenu['richMenuId']));
+  			        
+  			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
+  			              'delete', 'delete::' . $richmenu['richMenuId']));
+  			        
+  			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
+  			              'link', 'link::' . $richmenu['richMenuId']));
+  			        
+  			            $column = new \LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselColumnTemplateBuilder (
+  			              null,
+  			              $richmenu['richMenuId'],
+  			              null,
+  			              $actionArray
+  			            );
+  			        
+  			            array_push($columns, $column);
+  			        
+  			            if($i == 4 || $i == count($result['richmenus']) - 1) {
+  			              $builder = new \LINE\LINEBot\MessageBuilder\TemplateMessageBuilder(
+  			                'Richmenu',
+  			                new \LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselTemplateBuilder($columns)
+  			              );
+  			              $builders->add($builder);
+  			              unset($columns);
+  			              $columns = Array();
+  			            }
+  			        }
+  			        $bot->replyMessage($event->getReplyToken(), $builders);
+  		    	}
+  		    	else{
 
-          			for($i = 0; $i < count($result['richmenus']); $i++) {
-			            $richmenu = $result['richmenus'][$i];
-			            $actionArray = array();
-			        
-			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
-			              'upload image', 'upload::' . $richmenu['richMenuId']));
-			        
-			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
-			              'delete', 'delete::' . $richmenu['richMenuId']));
-			        
-			            array_push($actionArray, new LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder (
-			              'link', 'link::' . $richmenu['richMenuId']));
-			        
-			            $column = new \LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselColumnTemplateBuilder (
-			              null,
-			              $richmenu['richMenuId'],
-			              null,
-			              $actionArray
-			            );
-			        
-			            array_push($columns, $column);
-			        
-			            if($i == 4 || $i == count($result['richmenus']) - 1) {
-			              $builder = new \LINE\LINEBot\MessageBuilder\TemplateMessageBuilder(
-			                'Richmenu',
-			                new \LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselTemplateBuilder($columns)
-			              );
-			              $builders->add($builder);
-			              unset($columns);
-			              $columns = Array();
-			            }
-			        }
-			        $bot->replyMessage($event->getReplyToken(), $builders);
-		    	}
-		    	else{
+  		    		$bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('No richmenu.'));
+  		    	}
+  		    }
+  		    else if($event->getText() === 'unlink') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(unlinkFromUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId())));
+  		    }
+  		    else if($event->getText() === 'check') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(checkRichmenuOfUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId())));
+  		    }
+  		    else if(substr($event->getText(),0, 8) === 'upload::') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(uploadRandomImageToRichmenu(getenv($CHANNEL_ACCESS_TOKEN), substr($event->getText(), 8))));
+  		    }
+  	        else if(substr($event->getText(),0, 8) === 'delete::') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(deleteRichmenu(getenv($CHANNEL_ACCESS_TOKEN), substr($event->getText(), 8))));
+  	        }
+      	    else if(substr($event->getText(),0, 6) === 'link::') {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(linkToUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId(), substr($event->getText(), 6))));
+  		    }
+  		    else {
+  		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(
+  		          '"create" - create new Richmenu to channel.' . PHP_EOL .
+  		          '"list" - show all Richmenu created via API' . PHP_EOL .
+  		          '"list > upload" - upload image to Richmenu. Image choosen randomly' . PHP_EOL .
+  		          '"list > delete" - delete Richmenu' . PHP_EOL .
+  		          '"list > link" - link Richmenu to user(you)' . PHP_EOL .
+  		          '"unlink" - remove link to Richmenu of user(you)' . PHP_EOL .
+  		          '"check" - show Richmenu ID linked to user(you)' . PHP_EOL
+  		        ));
+  		    }
 
-		    		$bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder('No richmenu.'));
-		    	}
-		    }
-		    else if($event->getText() === 'unlink') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(unlinkFromUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId())));
-		    }
-		    else if($event->getText() === 'check') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(checkRichmenuOfUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId())));
-		    }
-		    else if(substr($event->getText(),0, 8) === 'upload::') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(uploadRandomImageToRichmenu(getenv($CHANNEL_ACCESS_TOKEN), substr($event->getText(), 8))));
-		    }
-	        else if(substr($event->getText(),0, 8) === 'delete::') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(deleteRichmenu(getenv($CHANNEL_ACCESS_TOKEN), substr($event->getText(), 8))));
-	        }
-    	    else if(substr($event->getText(),0, 6) === 'link::') {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(linkToUser(getenv($CHANNEL_ACCESS_TOKEN), $event->getUserId(), substr($event->getText(), 6))));
-		    }
-		    else {
-		        $bot->replyMessage($event->getReplyToken(),new \LINE\LINEBot\MessageBuilder\TextMessageBuilder(
-		          '"create" - create new Richmenu to channel.' . PHP_EOL .
-		          '"list" - show all Richmenu created via API' . PHP_EOL .
-		          '"list > upload" - upload image to Richmenu. Image choosen randomly' . PHP_EOL .
-		          '"list > delete" - delete Richmenu' . PHP_EOL .
-		          '"list > link" - link Richmenu to user(you)' . PHP_EOL .
-		          '"unlink" - remove link to Richmenu of user(you)' . PHP_EOL .
-		          '"check" - show Richmenu ID linked to user(you)' . PHP_EOL
-		        ));
-		    }
-
-    	}
-    }
+      	}
+      }
+  }
 }
-
 
 function createNewRichmenu($channelAccessToken) {
   $sh = <<< EOF
